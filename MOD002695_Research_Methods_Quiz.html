@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOD002695 — Research Methods Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --accent: #c9a84c;
+    --accent2: #5b7fde;
+    --green: #4caf7d;
+    --red: #e05c5c;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --easy: #4caf7d;
+    --medium: #c9a84c;
+    --hard: #e05c5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; animation: fadeUp 0.4s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── LANDING ── */
+  #landing {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    position: relative;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 80% 80%, rgba(91,127,222,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .institution-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    margin-bottom: 48px;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 56px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .stat-chip strong { color: var(--text); font-weight: 600; }
+
+  .difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .diff-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px 28px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  .diff-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .diff-card.easy::before { background: var(--easy); }
+  .diff-card.medium::before { background: var(--medium); }
+  .diff-card.hard::before { background: var(--hard); }
+
+  .diff-card:hover {
+    border-color: #353b4f;
+    transform: translateY(-3px);
+    background: var(--surface2);
+  }
+
+  .diff-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+
+  .diff-card.easy .diff-badge { background: rgba(76,175,125,0.15); color: var(--easy); }
+  .diff-card.medium .diff-badge { background: rgba(201,168,76,0.15); color: var(--medium); }
+  .diff-card.hard .diff-badge { background: rgba(224,92,92,0.15); color: var(--hard); }
+
+  .diff-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .diff-desc {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .diff-meta {
+    display: flex;
+    gap: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .diff-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── QUIZ SCREEN ── */
+  #quiz { min-height: 100vh; padding: 0; }
+
+  .quiz-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .quiz-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 14px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .quiz-mode-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+  }
+
+  .quiz-mode-badge.easy { background: rgba(76,175,125,0.15); color: var(--easy); }
+  .quiz-mode-badge.medium { background: rgba(201,168,76,0.15); color: var(--medium); }
+  .quiz-mode-badge.hard { background: rgba(224,92,92,0.15); color: var(--hard); }
+
+  .quiz-progress-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .quiz-header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    letter-spacing: 0.1em;
+  }
+
+  .timer.warning { color: var(--red); border-color: var(--red); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .score-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    background: var(--border);
+    height: 3px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.4s ease;
+  }
+
+  /* Question area */
+  .quiz-body {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .question-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .question-type-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    margin-left: 12px;
+  }
+
+  .question-type-tag.single { background: rgba(91,127,222,0.15); color: var(--accent2); }
+  .question-type-tag.multi { background: rgba(201,168,76,0.15); color: var(--accent); }
+
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    line-height: 1.55;
+    margin-bottom: 36px;
+    font-weight: 400;
+  }
+
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .option-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    position: relative;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: var(--surface2);
+    border-color: #353b4f;
+  }
+
+  .option-btn.selected {
+    border-color: var(--accent2);
+    background: rgba(91,127,222,0.1);
+  }
+
+  .option-btn.correct {
+    border-color: var(--green);
+    background: rgba(76,175,125,0.12);
+  }
+
+  .option-btn.wrong {
+    border-color: var(--red);
+    background: rgba(224,92,92,0.1);
+  }
+
+  .option-btn.reveal-correct {
+    border-color: var(--green);
+    background: rgba(76,175,125,0.07);
+    opacity: 0.7;
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  .opt-letter {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 22px;
+    height: 22px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.2s;
+  }
+
+  .option-btn.selected .opt-letter { border-color: var(--accent2); color: var(--accent2); }
+  .option-btn.correct .opt-letter { border-color: var(--green); color: var(--green); }
+  .option-btn.wrong .opt-letter { border-color: var(--red); color: var(--red); }
+  .option-btn.reveal-correct .opt-letter { border-color: var(--green); color: var(--green); }
+
+  .feedback-box {
+    background: var(--surface2);
+    border-left: 3px solid var(--green);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+    animation: fadeUp 0.3s ease;
+    display: none;
+  }
+
+  .feedback-box.wrong { border-color: var(--red); }
+
+  .feedback-box strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    padding: 14px 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover { background: #d4b563; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 13px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+
+  /* Section divider */
+  .section-divider {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 14px 20px;
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .section-divider strong { color: var(--accent); font-family: 'DM Mono', monospace; }
+
+  /* ── RESULTS ── */
+  #results {
+    min-height: 100vh;
+    padding: 60px 24px;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .results-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .results-grade {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(4rem, 12vw, 8rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 12px;
+    letter-spacing: -0.04em;
+  }
+
+  .grade-A { color: var(--green); }
+  .grade-B { color: var(--accent); }
+  .grade-C { color: #e0a84c; }
+  .grade-D { color: var(--red); }
+  .grade-F { color: #c0392b; }
+
+  .results-percent {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .results-verdict {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--muted);
+    margin-bottom: 48px;
+  }
+
+  .results-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 2px;
+    margin-bottom: 48px;
+  }
+
+  .result-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+    text-align: center;
+  }
+
+  .result-stat .val {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .result-stat .lbl {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Section breakdown */
+  .section-breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .breakdown-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .breakdown-label {
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 120px;
+  }
+
+  .breakdown-bar-wrap {
+    flex: 1;
+    background: var(--border);
+    height: 8px;
+    position: relative;
+  }
+
+  .breakdown-bar {
+    height: 100%;
+    transition: width 1s ease;
+  }
+
+  .breakdown-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Review table */
+  .review-section {
+    margin-bottom: 40px;
+  }
+
+  .review-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .review-item {
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .review-item-header {
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    background: var(--surface);
+    transition: background 0.2s;
+  }
+
+  .review-item-header:hover { background: var(--surface2); }
+
+  .review-q-text {
+    font-size: 14px;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .review-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    flex-shrink: 0;
+  }
+
+  .review-status.correct { background: rgba(76,175,125,0.15); color: var(--green); }
+  .review-status.wrong { background: rgba(224,92,92,0.15); color: var(--red); }
+  .review-status.skipped { background: rgba(107,114,128,0.2); color: var(--muted); }
+
+  .review-detail {
+    display: none;
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .review-detail.open { display: block; }
+
+  .review-answer { margin-bottom: 8px; }
+  .review-answer span { color: var(--text); }
+
+  .results-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 48px;
+  }
+
+  /* ── MISC ── */
+  .section-b-notice {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-left: 3px solid var(--accent);
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 600px) {
+    .quiz-header { padding: 12px 16px; }
+    .quiz-body { padding: 32px 16px 60px; }
+    .option-btn { font-size: 14px; padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ LANDING ════════════════════ -->
+<div id="landing" class="screen active">
+  <div class="hero-bg"></div>
+  <div class="institution-tag">Anglia Ruskin University · MOD002695</div>
+  <h1>Research Methods</h1>
+  <p class="subtitle">Comprehensive Assessment — 100 Questions</p>
+
+  <div class="stats-row">
+    <div class="stat-chip"><strong>Section A</strong> — 50 Single Best Answer</div>
+    <div class="stat-chip"><strong>Section B</strong> — 50 Select All That Apply</div>
+    <div class="stat-chip"><strong>150</strong> Total Marks</div>
+  </div>
+
+  <div class="difficulty-grid">
+    <div class="diff-card easy" onclick="startQuiz('easy')">
+      <div class="diff-badge">Easy</div>
+      <div class="diff-title">Guided Mode</div>
+      <div class="diff-desc">Immediate feedback after each answer. Correct answers are revealed when you're wrong. Best for learning and revision.</div>
+      <div class="diff-meta">
+        <span>⏱ 120 minutes</span>
+        <span>💡 Feedback shown</span>
+      </div>
+    </div>
+    <div class="diff-card medium" onclick="startQuiz('medium')">
+      <div class="diff-badge">Medium</div>
+      <div class="diff-title">Practice Mode</div>
+      <div class="diff-desc">Feedback shown after each question but correct answers not revealed until end. Simulates self-assessment.</div>
+      <div class="diff-meta">
+        <span>⏱ 100 minutes</span>
+        <span>📊 End review</span>
+      </div>
+    </div>
+    <div class="diff-card hard" onclick="startQuiz('hard')">
+      <div class="diff-badge">Hard</div>
+      <div class="diff-title">Exam Mode</div>
+      <div class="diff-desc">No feedback during the exam. Timed strictly at 90 minutes. Full review only at the end. Real exam simulation.</div>
+      <div class="diff-meta">
+        <span>⏱ 90 minutes</span>
+        <span>🔒 No hints</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ QUIZ ════════════════════ -->
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-header-left">
+      <button class="back-btn" onclick="goHome()">← Exit</button>
+      <span class="quiz-mode-badge" id="modeBadge">Easy</span>
+      <span class="quiz-progress-text" id="progressText">Q 1 / 100</span>
+    </div>
+    <div class="quiz-header-right">
+      <div class="timer" id="timer">—:——</div>
+      <div class="score-display" id="scoreDisplay">Score: 0</div>
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar" style="width:1%"></div>
+  </div>
+
+  <div class="quiz-body">
+    <div id="sectionDivider" class="section-divider" style="display:none">
+      <strong>SECTION B — Type II:</strong> Select <em>all</em> options that apply. Each question carries 2 marks.
+    </div>
+
+    <div class="question-num" id="qNum">QUESTION 1</div>
+    <div id="questionText" class="question-text"></div>
+    <div id="sectionBNotice" class="section-b-notice" style="display:none">Select <strong>all</strong> options that apply — partial answers receive no marks.</div>
+    <div class="options-list" id="optionsList"></div>
+    <div class="feedback-box" id="feedbackBox"></div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="skipBtn" onclick="skipQuestion()">Skip</button>
+      <button class="btn-primary" id="submitBtn" onclick="submitAnswer()" disabled>Submit Answer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ RESULTS ════════════════════ -->
+<div id="results" class="screen">
+  <div class="results-header">
+    <div class="results-grade" id="gradeDisplay"></div>
+    <div class="results-percent" id="percentDisplay"></div>
+    <div class="results-verdict" id="verdictText"></div>
+  </div>
+
+  <div class="results-stats" id="resultsStats"></div>
+
+  <div class="section-breakdown">
+    <div class="breakdown-title">Section Breakdown</div>
+    <div class="breakdown-row">
+      <span class="breakdown-label">Section A (×1)</span>
+      <div class="breakdown-bar-wrap">
+        <div class="breakdown-bar" id="barA" style="width:0%; background: var(--accent2)"></div>
+      </div>
+      <span class="breakdown-pct" id="pctA">0%</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="breakdown-label">Section B (×2)</span>
+      <div class="breakdown-bar-wrap">
+        <div class="breakdown-bar" id="barB" style="width:0%; background: var(--accent)"></div>
+      </div>
+      <span class="breakdown-pct" id="pctB">0%</span>
+    </div>
+  </div>
+
+  <div class="review-section">
+    <div class="review-title">Question Review — click to expand</div>
+    <div id="reviewList"></div>
+  </div>
+
+  <div class="results-actions">
+    <button class="btn-secondary" onclick="goHome()">← Choose Difficulty</button>
+    <button class="btn-primary" onclick="restartQuiz()">Retry Same Mode</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA — All 100 Questions
+// ══════════════════════════════════════════
+const QUESTIONS = [
+  // ── SECTION A ──
+  {s:'A', q:"Which of the following best captures what makes an activity qualify as 'research' rather than merely gathering information?", opts:["It involves reading many books and websites on a topic","It follows a systematic process aimed at contributing new knowledge","It is carried out by a qualified university professor","It produces a long written report with many references"], ans:[1]},
+  {s:'A', q:"According to Rugg and Petre (2007), which metaphor best illustrates that most research makes small, incremental advances rather than dramatic discoveries?", opts:["Hacking through a jungle with machetes","Sailing uncharted oceans to find new continents","Crawling along the frontiers of knowledge with a hand lens","Climbing a mountain to reach the summit in one ascent"], ans:[2]},
+  {s:'A', q:"What is the key distinction between primary and secondary research?", opts:["Primary research uses qualitative methods; secondary research uses quantitative methods","Primary research generates new knowledge; secondary research reviews existing published knowledge","Primary research is conducted by professors; secondary research is conducted by students","Primary research is more expensive; secondary research is free"], ans:[1]},
+  {s:'A', q:"Which characteristic of good research means that others can follow the same process and verify the findings?", opts:["Novel","Question-driven","Systematic","Peer-reviewed"], ans:[2]},
+  {s:'A', q:"Among the four types of primary research described by Rugg and Petre, which type asks: 'What happens when X is changed?'", opts:["Describing and Categorising","Counting","Systematic Change","Systematic Manipulation"], ans:[2]},
+  {s:'A', q:"Which type of primary research requires the strictest control of variables, keeping all factors constant except the one being tested?", opts:["Counting","Describing and Categorising","Systematic Change","Systematic Manipulation"], ans:[3]},
+  {s:'A', q:"A researcher surveys how often different types of optimisation algorithms appear in published neural network papers. This is best classified as which type of research?", opts:["Systematic Manipulation","Counting","Systematic Change","Describing and Categorising"], ans:[1]},
+  {s:'A', q:"Which of the following activities would Rugg and Petre consider NOT to constitute genuine research?", opts:["Conducting a controlled experiment to compare two sorting algorithms","Distributing a short questionnaire and writing 'so what?' conclusions with no analysis","Conducting a systematic literature review identifying gaps in knowledge","Developing and validating a new theoretical model for network security"], ans:[1]},
+  {s:'A', q:"Which academic database uses semantic search technology, understanding the meaning of a query rather than matching exact keywords?", opts:["Google Scholar","Web of Science","Scopus","Microsoft Academic"], ans:[3]},
+  {s:'A', q:"A researcher wants to find dissertations related to their AI project. Which database is specifically designed for that purpose?", opts:["Scopus","Web of Science","ProQuest","Google Scholar"], ans:[2]},
+  {s:'A', q:"What does the 'Analyze Results' feature in Web of Science primarily allow a researcher to do?", opts:["Auto-generate a literature review","Visualise publication trends by year, showing whether a research topic is growing or declining","Convert search results into a formatted reference list","Identify which dissertations have cited a given paper"], ans:[1]},
+  {s:'A', q:"Google Scholar uses which search approach?", opts:["Semantic search","Boolean operator search","Lexical verbatim search","Citation-weighted ranking only"], ans:[2]},
+  {s:'A', q:"Which database requires a paid institutional subscription and indexes only peer-reviewed, high-quality publications, resulting in fewer but more reliable results?", opts:["Google Scholar","Microsoft Academic","ProQuest","Web of Science"], ans:[3]},
+  {s:'A', q:"In the topic discovery process, what is the recommended action after initial brainstorming and before heading to academic repositories?", opts:["Submit the ethics application","Read general background information and identify keywords","Design the questionnaire","Conduct statistical analysis on preliminary data"], ans:[1]},
+  {s:'A', q:"A researcher notices that annual publications on their chosen topic have declined steadily over the last five years in Web of Science. What does this most likely indicate?", opts:["The topic is emerging and gaining momentum","The topic is mature or becoming less active as a research area","The database has stopped indexing that subject area","The researcher's keywords are too broad"], ans:[1]},
+  {s:'A', q:"What is the primary purpose of the initial scan approach to reading research papers (title, abstract, conclusions)?", opts:["To extract all statistical results before deeper reading","To determine whether the paper is relevant before committing full reading time","To identify the paper's funding sources","To locate the paper's dataset for reuse"], ans:[1]},
+  {s:'A', q:"In the hierarchy of reference quality, which source type carries the highest academic weight?", opts:["Academic books","Conference proceedings","Peer-reviewed academic journals","Official technical documentation"], ans:[2]},
+  {s:'A', q:"A literature review that closely follows the narrative structure of one existing paper and summarises it section by section is best described as:", opts:["A taxonomy-based review","A critically synthesised review","A derivative summary rather than a critical review","A systematic manipulation study"], ans:[2]},
+  {s:'A', q:"Which of the following best describes the correct logical flow of a literature review structure?", opts:["Methodology → Results → Context → Problem","Context → Problem → Solution domain → Recent work → Justification of approach","Keywords → Database search → Abstract extraction → Submission","Hypothesis → Data collection → Analysis → Review"], ans:[1]},
+  {s:'A', q:"A researcher wants to find more recent work that builds on a foundational paper they have already located. Which technique should they use?", opts:["Searching the paper's title verbatim in Google Scholar","Reading the abstract again more carefully","Using the 'Cited by' feature to find papers that cite the foundational work","Checking the paper's funding acknowledgements"], ans:[2]},
+  {s:'A', q:"The philosophical position that truth is objective, universal, and measured through observable facts is known as:", opts:["Phenomenalism","Hermeneutics","Positivism","Constructivism"], ans:[2]},
+  {s:'A', q:"In the dialectic of research, what does the 'synthesis' represent?", opts:["The initial hypothesis before testing","A new, improved argument that combines elements of the thesis and antithesis","The statistical summary of research results","The conclusion that the thesis was proven correct"], ans:[1]},
+  {s:'A', q:"The Hawthorne Effect refers to which research phenomenon?", opts:["The tendency for sample sizes to be too small to detect significance","The finding that results from lab settings always exceed real-world performance","The tendency for people to behave differently when they know they are being observed","The statistical error introduced by non-random sampling"], ans:[2]},
+  {s:'A', q:"Which research method is described as the 'gold standard' of proof due to its use of rigorous mathematical logic?", opts:["Hermeneutics","Proof by demonstration","Empiricism","Formal methods / mathematical proof"], ans:[3]},
+  {s:'A', q:"Testing a new algorithm exclusively in a controlled lab environment, rather than with real-world data, is an example of:", opts:["In vivo research","In vitro research","Hermeneutic research","Systematic manipulation"], ans:[1]},
+  {s:'A', q:"Qualitative research is also known by which philosophical label?", opts:["Positivist","Empiricist","Phenomenalist","Formalist"], ans:[2]},
+  {s:'A', q:"According to the seven-step survey process, what critical action should a researcher take BEFORE designing the questionnaire?", opts:["Conduct the pilot survey","Analyse the existing data","Define research aims and review literature","Select statistical software"], ans:[2]},
+  {s:'A', q:"If a typical survey response rate is 20%, and a researcher needs at least 100 completed responses, approximately how many questionnaires should be distributed?", opts:["120","200","400","500"], ans:[3]},
+  {s:'A', q:"A Likert scale question asking respondents to rate their agreement on a 1–5 scale produces which type of data?", opts:["Nominal","Ratio","Ordinal","Interval with a true zero"], ans:[2]},
+  {s:'A', q:"Which type of questionnaire question produces data that is hardest to analyse quantitatively but offers the richest descriptive detail?", opts:["Closed single-response","Rated scale (Likert)","Open question","Ranked response"], ans:[2]},
+  {s:'A', q:"What is the primary purpose of running a pilot survey before the main data collection?", opts:["To satisfy the ethics committee requirement","To test whether the questionnaire produces clear, reliable, and valid data","To estimate the final sample size needed","To publish preliminary findings"], ans:[1]},
+  {s:'A', q:"When coding a multiple-response question (e.g. 'Select all transport modes you use'), the correct approach is:", opts:["Assign one numerical code per combination of answers selected","Create a separate binary (0 or 1) variable for each response option","Record only the first option the respondent selects","Convert answers to a ranked scale before analysis"], ans:[1]},
+  {s:'A', q:"A dataset of car brands (Toyota, Ford, BMW) is an example of which type of data?", opts:["Ordinal","Interval","Ratio","Nominal"], ans:[3]},
+  {s:'A', q:"Which measure of central tendency is the ONLY valid measure for nominal data?", opts:["Mean","Median","Mode","Standard deviation"], ans:[2]},
+  {s:'A', q:"A dataset of exam scores is: 10, 20, 20, 30, 90. Which measure of central tendency best represents the 'typical' student, given the outlier of 90?", opts:["Mean (34)","Median (20)","Mode (20) and Mean (34) are equally good","Standard deviation"], ans:[1]},
+  {s:'A', q:"Standard deviation is defined as:", opts:["The average of all values in a dataset","The difference between the maximum and minimum values","The square root of the variance","The middle value when data is sorted"], ans:[2]},
+  {s:'A', q:"In a perfect normal distribution, which of the following is true?", opts:["The mean is larger than the median","The mean, median, and mode are all equal","Approximately 50% of data falls within one standard deviation","The distribution has two peaks (bimodal)"], ans:[1]},
+  {s:'A', q:"Pearson's correlation coefficient (r) of −0.85 indicates:", opts:["A weak positive relationship between two variables","No meaningful relationship","A strong negative relationship between two variables","A perfect positive correlation"], ans:[2]},
+  {s:'A', q:"Temperature measured in Fahrenheit is an example of which data type?", opts:["Ratio — it has a true zero","Nominal — it is just a label","Interval — it has equal gaps but no true zero","Ordinal — the gaps are unequal"], ans:[2]},
+  {s:'A', q:"A researcher commits a Type I error. This means they have:", opts:["Failed to reject a false null hypothesis","Rejected a true null hypothesis (a false positive)","Collected data from the wrong population","Used an inappropriate statistical test"], ans:[1]},
+  {s:'A', q:"Which type of statistics was historically the first and is based on probability and mathematical proofs?", opts:["Exploratory statistics","Bayesian statistics","Classical statistics","Descriptive statistics"], ans:[2]},
+  {s:'A', q:"A storage drive with a high mean speed but very high standard deviation would be most suitable for which use case?", opts:["Real-time drone telemetry where consistency is critical","Overnight large file backup where peak speed matters more than consistency","Both use cases equally","Neither — high SD always makes a drive unsuitable"], ans:[1]},
+  {s:'A', q:"Which document must ALL Anglia Ruskin University researchers complete before starting research, even if no further ethical approval is required?", opts:["The full Stage 2 ethics committee application","The Stage 1 Research Ethics Application (REA)","The NHS Health Research Authority form","The Data Protection Act compliance certificate"], ans:[1]},
+  {s:'A', q:"The principle that research should aim to produce genuine knowledge or benefit, and actively minimise harm to participants, reflects which pair of ethical principles?", opts:["Justice and Autonomy","Confidentiality and Anonymity","Beneficence and Non-maleficence","Validity and Reliability"], ans:[2]},
+  {s:'A', q:"What is the critical difference between anonymity and confidentiality in research?", opts:["Anonymity applies to qualitative data; confidentiality applies to quantitative data","In anonymity the researcher cannot link data to an individual; in confidentiality the researcher knows identities but promises not to disclose them","Confidentiality means the data is encrypted; anonymity means the data is deleted","They are interchangeable terms with no meaningful distinction"], ans:[1]},
+  {s:'A', q:"Research involving NHS patients, staff, or premises requires approval from which body?", opts:["Anglia Ruskin University's internal ethics committee","The Stage 1 REA checklist alone is sufficient","The Health Research Authority (HRA)","The UK Data Protection Commissioner"], ans:[2]},
+  {s:'A', q:"Which of the following best illustrates the principle that informed consent is a 'process, not merely a form'?", opts:["A participant signs a consent form at the start and cannot withdraw later","Participants are told the purpose, risks, and their right to withdraw at any point, and consent is ongoing throughout","Consent is given by the gatekeeper organisation on behalf of all participants","The researcher verbally explains the study; no written record is needed"], ans:[1]},
+  {s:'A', q:"A researcher uses a participant's job title and department in their report without using their name. Can the participant still be identifiable?", opts:["No — as long as the name is omitted, identification is impossible","Only if the organisation is also named","Yes — participants can sometimes be identified by role, location, or the specificity of their quotations","Only if the participant works in a very large organisation"], ans:[2]},
+  {s:'A', q:"A conflict of interest arising because a researcher works for the company they are studying must be:", opts:["Grounds for disqualifying the researcher from the study","Kept confidential to avoid biasing the findings","Declared in the ethics application and on the Participant Information Sheet","Reported only to the journal editor upon publication"], ans:[2]},
+  {s:'A', q:"Which of the following ethical risk classification colours is NOT used in the Anglia Ruskin University ethics system?", opts:["Green","Orange","Red","Purple"], ans:[3]},
+
+  // ── SECTION B ──
+  {s:'B', q:"According to ARU ethics guidelines, when must ethical approval be obtained in relation to a pilot study?", opts:["After the pilot study is complete, based on what problems arose","Before the pilot study begins","Only if the pilot study reveals significant problems","Pilot studies are exempt from ethical approval requirements"], ans:[1]},
+  {s:'B', q:"A gatekeeper in research ethics refers to:", opts:["The university librarian who controls access to academic databases","A senior individual in an organisation who grants access to participants","The ethics committee chairperson","The data protection officer who stores participant data"], ans:[1]},
+  {s:'B', q:"Which of the following are characteristics of good academic research according to the course materials?", opts:["It is systematic and follows a replicable process","It is question-driven, beginning with a clear answerable question","It is evidence-based rather than grounded in personal opinion","It must be novel and contribute something new in some meaningful sense","It is acceptable to conduct it in isolation without supervisor contact"], ans:[0,1,2,3]},
+  {s:'B', q:"Which of the following activities does the course identify as NOT constituting genuine research?", opts:["Collecting existing data without analysis or synthesis","Choosing an easy topic and writing 'so what?' conclusions","Conducting a controlled experiment with measurable outcomes","Working without regular supervisor contact for extended periods","Submitting work that has never been seen by a supervisor"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following correctly describe the four types of primary research identified by Rugg and Petre?", opts:["Describing and Categorising — the researcher observes and classifies without manipulation","Counting — quantifies frequency or distribution of a phenomenon","Systematic Change — changes something and observes the result","Systematic Manipulation — controls all variables except the one being tested","Secondary Synthesis — synthesises existing literature into a new theoretical model"], ans:[0,1,2,3]},
+  {s:'B', q:"Which of the following are cited in the course as defining characteristics of research drawn from standard definitions?", opts:["Research is systematic — it follows a deliberate structured process","Research involves inquiry — it poses answerable questions","Research must be carried out exclusively using quantitative methods","Research aims to describe, explain, predict, or control observed phenomena","Research must contribute to knowledge beyond what already exists"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following correctly describe the characteristics of Google Scholar as an academic database?", opts:["It is completely free to access without institutional subscription","It uses a lexical verbatim search approach matching exact keywords","It indexes only peer-reviewed, high-quality journal articles","It contains over 389 million documents making it the largest academic index","It allows users to set up citation alerts for new papers citing a work"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following statements about Web of Science are correct?", opts:["It requires a paid institutional subscription","It supports Boolean operators including AND, OR, and NOT","It uses semantic search technology to understand query meaning","Its 'Analyze Results' feature visualises publication year trends","It performs cited reference searches to find who cites a given paper"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are valid approaches when the exact research topic has little published literature?", opts:["Investigate the same technique applied to a different application domain","Examine the same research outcome achieved through a different method","Abandon the topic entirely and choose a more popular research area","Examine the same process applied to produce a different outcome","Broaden the scope slightly to include closely related themes"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are key stages in the iterative research topic discovery process described in the course?", opts:["Brainstorming for ideas from personal knowledge and observed problems","Seeking advice from supervisors and domain experts","Submitting an ethics application before reading any literature","Reading general background information in textbooks and review articles","Listing keywords and heading to academic repositories"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are correct purposes of a literature review according to the course materials?", opts:["Ensuring the researcher is familiar with what is already known, preventing unnecessary duplication","Identifying gaps, contradictions, or limitations in existing work","Providing the theoretical and methodological framework underpinning the research","Demonstrating academic credibility by situating work within scholarly conversation","Replacing the need for any primary research by synthesising existing findings"], ans:[0,1,2,3]},
+  {s:'B', q:"When analysing a research paper in depth, which of the following are key components to look for?", opts:["Contribution — what new idea, method, or finding does the paper introduce?","Motivation — what problem does it solve and why does it matter?","The paper's reference list length as the primary quality indicator","Methodology — how do the authors evaluate or validate their solution?","Take-away — what general lesson can be extracted beyond the specific topic?"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following correctly describe the hierarchy of reference quality in academic writing?", opts:["Peer-reviewed journal articles rank highest due to double-blind review","Conference proceedings rank above academic books","Official technical documents rank above peer-reviewed journals","Academic books rank below conference proceedings","Blogs and social media carry the least academic weight"], ans:[0,4]},
+  {s:'B', q:"Which of the following situations require a reference citation in academic writing?", opts:["Referring to a hardware product or software tool","Making a factual claim that cannot be verified by logical deduction from cited sources","Putting forward a position or opinion","Presenting data that is self-evident from your own research results","Referring to an earlier numbered section in your own document"], ans:[0,1,2]},
+  {s:'B', q:"Which of the following are described as reasons why Computer Science might be considered a science?", opts:["It includes computability theory with abstract formal rules","It is primarily about building chips and hardware","Turing machines provide theoretical models that predict computing behaviour","Quantum computing involves genuine scientific research","Most computing problems disappear with better hardware"], ans:[0,2,3]},
+  {s:'B', q:"Which of the following correctly describe characteristics of positivist (quantitative) research?", opts:["It deals with numbers and objective measurements","It relies on statistical and experimental methods","It depends heavily on the researcher's personal interpretation","It is also known as phenomenalist research","It produces findings that are not affected by the researcher's opinion"], ans:[0,1,4]},
+  {s:'B', q:"Which of the following are valid research methods described in the Week 5 materials?", opts:["Proof by demonstration — building something and showing it works","Empiricism — hypothesis, method, result, conclusion through observation","Hermeneutics — studying phenomena in real-world context rather than controlled settings","Formal methods — rigorous mathematical proof and verification","Reflexivity — the researcher documenting their personal feelings throughout"], ans:[0,1,2,3]},
+  {s:'B', q:"Which of the following are limitations or risks associated with the 'proof by demonstration' research method?", opts:["Complex systems can have hidden failures not revealed by a single demonstration","It is impossible to build anything that demonstrates a concept","Results may not generalise beyond the specific demonstrated system","It requires mathematical proof, which is difficult for practical systems","Iterative improvement is necessary because first demonstrations rarely reveal all issues"], ans:[0,2,4]},
+  {s:'B', q:"Which of the following are steps in the seven-step survey research process described in the course?", opts:["Define research aims","Identify population and sample","Design the questionnaire","Run a pilot survey","Submit the ethics application as the final step"], ans:[0,1,2,3]},
+  {s:'B', q:"Which of the following are disadvantages of open questions in questionnaire design?", opts:["They produce rich, detailed qualitative answers","They are difficult to summarise and analyse quantitatively","They are time-consuming to complete and analyse","They may miss unexpected answers not anticipated by the researcher","They cannot be coded numerically for statistical analysis"], ans:[1,2]},
+  {s:'B', q:"Which of the following are advantages of closed questions compared to open questions?", opts:["They are easy to analyse statistically","They are quick for respondents to complete","They can be coded numerically","They always capture the full range of possible respondent views","They reveal deeper context and motivations than open questions"], ans:[0,1,2]},
+  {s:'B', q:"Which of the following statements about sampling and response rates are correct according to the course materials?", opts:["The population is everyone who could potentially be studied","The sample is the smaller group actually surveyed","A census involves surveying everyone in the population","Response rates are typically very high in academic surveys (above 80%)","A rough rule of thumb is to aim for 20–30 responses per major sub-category"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following correctly describe interval data?", opts:["It has a numeric scale with equal gaps between values","It has no true zero point","Ratios between values are meaningful (e.g. 100°F is twice as hot as 50°F)","Temperature in Fahrenheit is an example","Means, medians, and modes can all be calculated from it"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are correct statements about the standard deviation?", opts:["It is the square root of the variance","It is expressed in the same units as the original data","A small standard deviation means data points are widely spread from the mean","A large standard deviation indicates high variability in the dataset","It measures the spread of data around the mean"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are true of a perfectly normal distribution?", opts:["The mean, mode, and median are all equal","Approximately 68% of data falls within one standard deviation of the mean","The distribution is perfectly symmetrical (bell-shaped)","Approximately 99.7% of data falls within two standard deviations","Approximately 95% of data falls within two standard deviations"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct statements about Pearson's correlation coefficient (r)?", opts:["It ranges from −1 to +1","A value of 0 indicates no linear relationship between the variables","A value of +1.0 indicates a perfect positive correlation","A value of −0.85 indicates a weak negative relationship","Correlation between two variables proves that one causes the other"], ans:[0,1,2]},
+  {s:'B', q:"Which of the following correctly describe Type I and Type II errors in hypothesis testing?", opts:["A Type I error occurs when a true null hypothesis is incorrectly rejected","A Type II error occurs when a false null hypothesis is not rejected","A Type I error is also called a false positive","A Type II error is also called a false positive","Both types of error reflect problems with statistical significance testing"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct descriptions of ratio data?", opts:["It has a true zero point where zero means 'nothing'","All four mathematical operations (add, subtract, multiply, divide) are valid","Time and weight are examples of ratio data","The mean, median, and mode can all be calculated","Ratios between values are meaningful (e.g. 60 kg is twice 30 kg)"], ans:[0,1,2,3,4]},
+  {s:'B', q:"Which of the following are correct about the three approaches to statistics described in the course?", opts:["Classical statistics is the oldest, based on probability and mathematical proofs","Exploratory statistics uses techniques like scatter plots and histograms to discover patterns","Bayesian statistics updates the probability of a hypothesis as more evidence becomes available","Classical statistics relies entirely on the researcher's subjective prior beliefs","Exploratory statistics is always preferred over classical statistics for hypothesis testing"], ans:[0,1,2]},
+  {s:'B', q:"Which of the following are correct statements about hypothesis testing?", opts:["The null hypothesis typically states that there is no significant effect or relationship","The alternate hypothesis states that a significant effect or relationship exists","A p-value below 0.05 is conventionally considered statistically significant","Statistical significance alone guarantees practical importance of a finding","The power of a test is its ability to detect a real effect when one exists"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are valid reasons why research requires ethical approval according to the ARU Code of Practice?", opts:["To protect the rights and welfare of research participants","To minimise the risk of physical and psychological harm","To ensure researchers receive appropriate compensation","To protect the reputation of the university","Because external funding bodies and refereed journals may require a statement of ethical practice"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following types of research REQUIRE ethical approval at ARU?", opts:["Research involving human participants through telephone interviews","Research accessing personal or sensitive confidential data","Research involving purely publicly available, fully anonymised historical records with no identifiable individuals","Research involving NHS patients, staff, or premises","Research involving human biological material such as blood or saliva"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are correct statements about the Stage 1 Research Ethics Application (REA) at Anglia Ruskin University?", opts:["All researchers must complete the Stage 1 REA","The checklist must be submitted signed and dated prior to starting research","Completing the Stage 1 REA automatically grants full ethical approval","The Stage 1 REA informs whether further ethical approval is needed","Only postgraduate researchers are required to submit the Stage 1 REA"], ans:[0,1,3]},
+  {s:'B', q:"Which of the following are correct statements about informed consent in research?", opts:["Participants must understand the purpose, risks, and benefits of the research","Participants must be informed they can withdraw at any time without penalty","Written permission from a gatekeeper organisation constitutes individual participant consent","Special care is required when power relationships could make participants feel obliged to take part","Reimbursing participants for reasonable travel expenses is an acceptable practice"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are correct statements about anonymity and confidentiality in research?", opts:["Researchers must never make false assurances about anonymity","If an organisation's name is used in dissemination, written permission must be obtained","Participants cannot be identified if their names are not included in the report","Research outputs containing personal quotes increase the risk of participant identification","Information provided to researchers is normally given either anonymously or in confidence"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are correct statements about conflicts of interest in research?", opts:["Conflicts of interest must be declared in the ethics application","A conflict arising from research funding must be disclosed","A dual role as researcher and employee of the organisation being studied represents a potential conflict","A conflict of interest automatically disqualifies a researcher from conducting the study","Conflicts of interest must also be declared on the Participant Information Sheet"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct statements about CRB (Criminal Records Bureau) clearance requirements at ARU?", opts:["CRB clearance must normally be obtained through Anglia Ruskin University","CRB clearance is required for all types of research without exception","If conducting research abroad, you may need the equivalent clearance for that country","A copy of CRB clearance obtained through an employer may be accepted if it meets requirements","CRB clearance must have been carried out within the last year"], ans:[0,2,3]},
+  {s:'B', q:"Which of the following are ethically relevant considerations when a researcher discovers a participant has disclosed an allegation of bullying during an interview?", opts:["The researcher's obligation to respect the confidentiality the participant has requested","The potential risk of harm to the participant if the allegation is disclosed","The researcher's personal view about whether bullying actually occurs in workplaces","The researcher's duty of care toward the participant's wellbeing","Whether other respondents have corroborated the allegation"], ans:[0,1,3]},
+  {s:'B', q:"Which of the following are correct statements about pilot studies and ethical approval?", opts:["Ethical approval must be obtained before carrying out a pilot study","Pilot studies do not require ethical approval as they are preliminary","If changes are made following the pilot, the revised study also requires ethical approval","It is strongly recommended that self-devised questionnaires are piloted before main use","Changes after piloting never require additional ethical approval"], ans:[0,2,3]},
+  {s:'B', q:"Which of the following are correct statements about the Participant Information Sheet (PIS)?", opts:["The PIS must explain the purpose of the study to potential participants","The PIS should state that participation is entirely voluntary","The PIS should inform participants about how their data will be stored and used","The PIS must declare any conflicts of interest relating to the research","The PIS is required for all research regardless of ethical risk category"], ans:[0,1,2,3]},
+  {s:'B', q:"In the ethical dilemma of a PhD student whose supervisor requests co-authorship, which of the following observations are ethically significant?", opts:["The student's reluctant agreement suggests the consent was not entirely free","The supervisor's limited contribution (general advice) raises questions about whether co-authorship is warranted","Because the student eventually agreed, there is no ethical concern","There is a power imbalance between a PhD student and their supervisor","Authorship disputes are a recognised category of research misconduct"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following are correct about research data protection and storage under the frameworks described in the course?", opts:["Researchers must comply with the UK Data Protection Act (1998)","Pre-existing data that is not public and is identifiable requires ethical approval before access","Secondary data reuse never requires ethical approval","Researchers must consider whether participants could be identified through dataset linkage","Data collected for one purpose can be freely reused for research without participant consent"], ans:[0,1,3]},
+  {s:'B', q:"Which of the following are correct statements about the principle of beneficence in research ethics?", opts:["Research should aim to produce genuine knowledge or benefit","Researchers must minimise risks and harms to participants","Beneficence requires that all risks to participants must be completely eliminated","A proportionate risk-benefit analysis must be conducted","Even where some risk is unavoidable, potential benefits must justify it"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following correctly describe ordinal data?", opts:["Categories can be ranked in a meaningful order","The gaps between adjacent ranks are guaranteed to be equal","Days of the week and Likert scale ratings are examples","Only the mode and median are valid summary statistics","Ordinal data supports all arithmetic operations"], ans:[0,2,3]},
+  {s:'B', q:"Which of the following are correct about the role of a literature review in a research project?", opts:["It identifies gaps or contradictions in existing work that the new research can address","It provides a theoretical and methodological framework for the research","It must tell a coherent narrative story from what is known to what is unknown","It should simply summarise each paper in the order they were read","It demonstrates that the researcher's contribution is situated within scholarly conversation"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct statements about sampling in survey research?", opts:["A sampling frame is a complete list of the population used to select the sample","A census surveys everyone in the population","Higher response rates reduce the likelihood of non-response bias","The population and the sample are always the same in well-designed research","If a typical response rate is 20%, distributing 5× more questionnaires than needed is advisable"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct about the principle of justice in research ethics?", opts:["The burdens and benefits of research should be distributed equitably among participant groups","No group should be disproportionately burdened by research risks","Justice requires that all participants, regardless of demographic, are treated with equal respect","Justice means the researcher must always select the largest possible sample","Research on a condition that primarily affects one community should, where appropriate, involve that community"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct about Pearson's correlation coefficient and what it can and cannot tell us?", opts:["It measures the strength and direction of a linear relationship between two variables","A correlation of +1.0 indicates that as X increases, Y increases proportionally every time","A correlation of 0 indicates no linear relationship between the variables","A strong correlation between two variables proves a causal relationship","Correlation values range from −1 to +1"], ans:[0,1,2,4]},
+  {s:'B', q:"Which of the following are correct statements about questionnaire design according to the course materials?", opts:["Every question in a questionnaire should serve a clear research purpose","The researcher should plan the analysis approach before designing the questionnaire","Ranked response questions require respondents to order choices by preference","A Likert scale is an example of a rated response question","Always use open questions because they produce richer data than closed questions"], ans:[0,1,2,3]},
+  {s:'B', q:"Which of the following are correct statements about peer-reviewed journals as a reference source?", opts:["They undergo rigorous double-blind review before publication","They rank highest in the academic hierarchy of reference quality","They are always freely available online without subscription","They provide the most credible evidence for factual claims in academic writing","Conference proceedings typically undergo lighter peer review than journal articles"], ans:[0,1,3,4]},
+  {s:'B', q:"Which of the following correctly describe the concept of 'variance' in descriptive statistics?", opts:["It is the average squared distance of each data point from the mean","A larger variance indicates more spread-out data","Variance is expressed in the same units as the original measurements","It describes how tightly data clusters around the mean","Standard deviation is derived from variance by taking the square root"], ans:[0,1,3,4]},
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let mode = 'easy';
+let currentQ = 0;
+let score = 0;
+let answers = []; // {selected:[], correct:bool, skipped:bool}
+let timerInterval = null;
+let secondsLeft = 0;
+let selectedOptions = new Set();
+let answered = false;
+
+const TIMES = { easy: 7200, medium: 6000, hard: 5400 };
+const LETTERS = ['A','B','C','D','E'];
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('landing');
+}
+
+// ══════════════════════════════════════════
+//  START QUIZ
+// ══════════════════════════════════════════
+function startQuiz(m) {
+  mode = m;
+  currentQ = 0;
+  score = 0;
+  answers = [];
+  secondsLeft = TIMES[m];
+  selectedOptions = new Set();
+  answered = false;
+
+  // header badge
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = m.charAt(0).toUpperCase() + m.slice(1);
+  badge.className = 'quiz-mode-badge ' + m;
+
+  showScreen('quiz');
+  startTimer();
+  renderQuestion();
+}
+
+function restartQuiz() {
+  startQuiz(mode);
+}
+
+// ══════════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════════
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    updateTimerDisplay();
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      finishQuiz();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const el = document.getElementById('timer');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className = 'timer' + (secondsLeft < 300 ? ' warning' : '');
+}
+
+// ══════════════════════════════════════════
+//  RENDER QUESTION
+// ══════════════════════════════════════════
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  selectedOptions = new Set();
+  answered = false;
+
+  // Progress
+  document.getElementById('progressText').textContent = `Q ${currentQ+1} / ${QUESTIONS.length}`;
+  document.getElementById('progressBar').style.width = `${((currentQ+1)/QUESTIONS.length)*100}%`;
+  document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
+  document.getElementById('qNum').textContent = `QUESTION ${currentQ+1}`;
+
+  // Section divider
+  const prevS = currentQ > 0 ? QUESTIONS[currentQ-1].s : 'A';
+  document.getElementById('sectionDivider').style.display = (q.s === 'B' && prevS === 'A') ? 'block' : 'none';
+
+  // Question text
+  const typeTag = q.s === 'A'
+    ? `<span class="question-type-tag single">Single Best Answer</span>`
+    : `<span class="question-type-tag multi">Select All That Apply</span>`;
+
+  document.getElementById('questionText').innerHTML = q.q;
+  document.getElementById('qNum').innerHTML = `QUESTION ${currentQ+1} ${typeTag}`;
+
+  // Section B notice
+  document.getElementById('sectionBNotice').style.display = q.s === 'B' ? 'block' : 'none';
+
+  // Options
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  const numOpts = q.opts.length;
+  for (let i = 0; i < numOpts; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="opt-letter">${LETTERS[i]}</span><span>${q.opts[i]}</span>`;
+    btn.onclick = () => toggleOption(i, q.s, btn, numOpts);
+    list.appendChild(btn);
+  }
+
+  // Feedback & submit
+  const fb = document.getElementById('feedbackBox');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Submit Answer';
+  document.getElementById('skipBtn').style.display = 'inline-block';
+}
+
+// ══════════════════════════════════════════
+//  TOGGLE OPTION
+// ══════════════════════════════════════════
+function toggleOption(idx, section, btn, numOpts) {
+  if (answered) return;
+  const list = document.getElementById('optionsList');
+  const btns = list.querySelectorAll('.option-btn');
+
+  if (section === 'A') {
+    // Single select
+    selectedOptions.clear();
+    btns.forEach(b => b.classList.remove('selected'));
+    selectedOptions.add(idx);
+    btn.classList.add('selected');
+  } else {
+    // Multi select
+    if (selectedOptions.has(idx)) {
+      selectedOptions.delete(idx);
+      btn.classList.remove('selected');
+    } else {
+      selectedOptions.add(idx);
+      btn.classList.add('selected');
+    }
+  }
+
+  document.getElementById('submitBtn').disabled = selectedOptions.size === 0;
+}
+
+// ══════════════════════════════════════════
+//  SUBMIT
+// ══════════════════════════════════════════
+function submitAnswer() {
+  if (answered || selectedOptions.size === 0) return;
+  answered = true;
+
+  const q = QUESTIONS[currentQ];
+  const selected = Array.from(selectedOptions).sort();
+  const correct = [...q.ans].sort();
+  const isCorrect = JSON.stringify(selected) === JSON.stringify(correct);
+
+  // Scoring
+  if (isCorrect) {
+    score += q.s === 'A' ? 1 : 2;
+  }
+
+  answers.push({ selected, correct, isCorrect, skipped: false });
+
+  const list = document.getElementById('optionsList');
+  const btns = list.querySelectorAll('.option-btn');
+
+  if (mode === 'easy' || mode === 'medium') {
+    // Highlight right/wrong
+    btns.forEach((btn, i) => {
+      btn.disabled = true;
+      const inSelected = selectedOptions.has(i);
+      const inCorrect = correct.includes(i);
+
+      if (inCorrect) {
+        btn.classList.remove('selected');
+        btn.classList.add(inSelected ? 'correct' : 'reveal-correct');
+      } else if (inSelected && !inCorrect) {
+        btn.classList.remove('selected');
+        btn.classList.add('wrong');
+      }
+    });
+
+    // Feedback
+    if (mode === 'easy') {
+      const fb = document.getElementById('feedbackBox');
+      fb.style.display = 'block';
+      if (isCorrect) {
+        fb.className = 'feedback-box';
+        fb.innerHTML = `<strong>✓ Correct!</strong> ${isCorrect ? 'Well done.' : ''}`;
+      } else {
+        fb.className = 'feedback-box wrong';
+        const corrLetters = correct.map(i => LETTERS[i]).join(', ');
+        fb.innerHTML = `<strong>✗ Incorrect.</strong> The correct answer${correct.length > 1 ? 's are' : ' is'}: <strong style="color:var(--green)">${corrLetters}</strong>`;
+      }
+    }
+  } else {
+    // Hard mode — no highlighting
+    btns.forEach(btn => btn.disabled = true);
+  }
+
+  document.getElementById('submitBtn').textContent = 'Next →';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').onclick = nextQuestion;
+  document.getElementById('skipBtn').style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+//  SKIP
+// ══════════════════════════════════════════
+function skipQuestion() {
+  const q = QUESTIONS[currentQ];
+  answers.push({ selected: [], correct: [...q.ans].sort(), isCorrect: false, skipped: true });
+  nextQuestion();
+}
+
+// ══════════════════════════════════════════
+//  NEXT QUESTION
+// ══════════════════════════════════════════
+function nextQuestion() {
+  currentQ++;
+  document.getElementById('submitBtn').onclick = submitAnswer;
+  if (currentQ >= QUESTIONS.length) {
+    finishQuiz();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ══════════════════════════════════════════
+//  FINISH
+// ══════════════════════════════════════════
+function finishQuiz() {
+  clearInterval(timerInterval);
+
+  // Fill remaining as skipped
+  while (answers.length < QUESTIONS.length) {
+    const q = QUESTIONS[answers.length];
+    answers.push({ selected: [], correct: [...q.ans].sort(), isCorrect: false, skipped: true });
+  }
+
+  // Recalculate score properly
+  let finalScore = 0;
+  let aCorrect = 0, bCorrect = 0;
+  answers.forEach((a, i) => {
+    const q = QUESTIONS[i];
+    if (a.isCorrect) {
+      finalScore += q.s === 'A' ? 1 : 2;
+      if (q.s === 'A') aCorrect++;
+      else bCorrect++;
+    }
+  });
+
+  const totalMarks = 150;
+  const pct = Math.round((finalScore / totalMarks) * 100);
+
+  let grade, gradeClass, verdict;
+  if (pct >= 85) { grade = 'A+'; gradeClass = 'grade-A'; verdict = 'Distinction. Outstanding performance.'; }
+  else if (pct >= 70) { grade = 'A'; gradeClass = 'grade-A'; verdict = 'Excellent. Strong command of the material.'; }
+  else if (pct >= 60) { grade = 'B'; gradeClass = 'grade-B'; verdict = 'Good pass. A few areas to revisit.'; }
+  else if (pct >= 50) { grade = 'C'; gradeClass = 'grade-C'; verdict = 'Satisfactory. Review the weak areas.'; }
+  else if (pct >= 40) { grade = 'D'; gradeClass = 'grade-D'; verdict = 'Borderline. Significant revision needed.'; }
+  else { grade = 'F'; gradeClass = 'grade-F'; verdict = 'Below passing. Thorough review recommended.'; }
+
+  document.getElementById('gradeDisplay').textContent = grade;
+  document.getElementById('gradeDisplay').className = 'results-grade ' + gradeClass;
+  document.getElementById('percentDisplay').textContent = `${finalScore} / ${totalMarks} marks  ·  ${pct}%`;
+  document.getElementById('verdictText').textContent = verdict;
+
+  const skipped = answers.filter(a => a.skipped).length;
+  const timeTaken = TIMES[mode] - secondsLeft;
+  const mm = Math.floor(timeTaken/60), ss = timeTaken%60;
+
+  document.getElementById('resultsStats').innerHTML = `
+    <div class="result-stat"><div class="val" style="color:var(--green)">${answers.filter(a=>a.isCorrect).length}</div><div class="lbl">Correct</div></div>
+    <div class="result-stat"><div class="val" style="color:var(--red)">${answers.filter(a=>!a.isCorrect && !a.skipped).length}</div><div class="lbl">Incorrect</div></div>
+    <div class="result-stat"><div class="val" style="color:var(--muted)">${skipped}</div><div class="lbl">Skipped</div></div>
+    <div class="result-stat"><div class="val">${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}</div><div class="lbl">Time Taken</div></div>
+  `;
+
+  const aPct = Math.round((aCorrect / 50) * 100);
+  const bPct = Math.round((bCorrect / 50) * 100);
+  setTimeout(() => {
+    document.getElementById('barA').style.width = aPct + '%';
+    document.getElementById('barB').style.width = bPct + '%';
+  }, 300);
+  document.getElementById('pctA').textContent = aPct + '%';
+  document.getElementById('pctB').textContent = bPct + '%';
+
+  // Review list
+  const reviewList = document.getElementById('reviewList');
+  reviewList.innerHTML = '';
+  answers.forEach((a, i) => {
+    const q = QUESTIONS[i];
+    const statusClass = a.skipped ? 'skipped' : a.isCorrect ? 'correct' : 'wrong';
+    const statusLabel = a.skipped ? 'Skipped' : a.isCorrect ? 'Correct' : 'Wrong';
+    const corrLetters = a.correct.map(j => LETTERS[j]).join(', ');
+    const selLetters = a.selected.length ? a.selected.map(j => LETTERS[j]).join(', ') : '—';
+
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    div.innerHTML = `
+      <div class="review-item-header" onclick="toggleReview(this)">
+        <span class="review-q-text"><strong style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-right:10px">Q${i+1}</strong>${q.q}</span>
+        <span class="review-status ${statusClass}">${statusLabel}</span>
+      </div>
+      <div class="review-detail">
+        <div class="review-answer">Your answer: <span>${selLetters}</span></div>
+        <div class="review-answer">Correct answer: <span style="color:var(--green)">${corrLetters}</span></div>
+      </div>
+    `;
+    reviewList.appendChild(div);
+  });
+
+  showScreen('results');
+}
+
+function toggleReview(header) {
+  const detail = header.nextElementSibling;
+  detail.classList.toggle('open');
+}
+</script>
+</body>
+</html>
